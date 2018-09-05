@@ -78,6 +78,10 @@ public class SignInActivity extends AppCompatActivity
             if (result.isSuccess()) {
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogleAccount(account);
+            } else {
+                Toast.makeText(this,
+                        result.getStatus().zzp(),
+                        Toast.LENGTH_LONG).show();
             }
         } else {
             Log.e(TAG, "Failed to sign in.");
