@@ -36,6 +36,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.firebase.ui.database.SnapshotParser;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import etna.hyvernparede.pictionis.chat.ChatMessage;
 
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {

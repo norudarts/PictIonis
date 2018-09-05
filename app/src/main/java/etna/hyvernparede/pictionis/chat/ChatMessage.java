@@ -1,6 +1,6 @@
-package etna.hyvernparede.pictionis;
+package etna.hyvernparede.pictionis.chat;
 
-class ChatMessage {
+public class ChatMessage {
 
     private String id;
     private String text;
