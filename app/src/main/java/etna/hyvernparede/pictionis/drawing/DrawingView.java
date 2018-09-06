@@ -74,12 +74,14 @@ public class DrawingView extends View {
                 String newSegmentId = dataSnapshot.getKey();
                 if (!segmentIds.contains(newSegmentId)) {
                     Segment segment = dataSnapshot.getValue(Segment.class);
-                    drawSegment(segment, makePaint(segment.getColor()));
+                    if (!alreadyOnScreen(newSegmentId)) {
+                        drawSegment(segment, makePaint(segment.getColor()));
 
-                    drawnSegments.add(segment);
-                    segmentIds.remove(newSegmentId);
-                    // Draw
-                    invalidate();
+                        // Draw
+                        segment.setId(newSegmentId);
+                        drawnSegments.add(segment);
+                        invalidate();
+                    }
                 }
             }
 
@@ -165,15 +167,16 @@ public class DrawingView extends View {
         path.lineTo(lastX * PIXEL_SIZE, lastY * PIXEL_SIZE);
         buffer.drawPath(path, paint);
         path.reset();
-        drawnSegments.add(currentSegment);
 
         DatabaseReference newSegmentReference = segmentsReference.push();
-        final String segmentId = segmentsReference.getKey();
+        final String segmentId = newSegmentReference.getKey();
         segmentIds.add(segmentId);
+        currentSegment.setId(segmentId);
+        drawnSegments.add(currentSegment);
 
         // Scaling
         Segment scaledSegment = new Segment(currentSegment.getColor());
-        for (Point point: currentSegment.getPoints()) {
+        for (Point point : currentSegment.getPoints()) {
             scaledSegment.addPoint(
                     Math.round(point.getX() / scale), Math.round(point.getY() / scale)
             );
@@ -186,12 +189,18 @@ public class DrawingView extends View {
                     Log.e(TAG, databaseError.toString());
                 }
 
-//                segmentIds.remove(segmentId);
+                segmentIds.remove(segmentId);
             }
         });
     }
 
     // Drawing methods
+    private boolean alreadyOnScreen(String segmentId) {
+        return drawnSegments.stream()
+                .map(Segment::getId)
+                .anyMatch(id -> id.equals(segmentId));
+    }
+
     public void drawSegment(Segment segment, Paint paint) {
         if (buffer != null) {
             buffer.drawPath(getPath(segment.getPoints()), paint);
@@ -234,7 +243,8 @@ public class DrawingView extends View {
         bitmap = Bitmap.createBitmap(Math.round(this.width * scale), Math.round(this.height * scale),
                 Bitmap.Config.ARGB_8888);
         buffer = new Canvas(bitmap);
-        for (Segment segment : drawnSegments) drawSegment(segment, makePaint(segment.getColor()));
+        for (Segment segment : drawnSegments)
+            drawSegment(segment, makePaint(segment.getColor()));
     }
 
     @Override
@@ -249,12 +259,7 @@ public class DrawingView extends View {
     public void clean() {
         // Reset Firebase and clear screen
         segmentsReference.removeEventListener(listener);
-        segmentsReference.removeValue(new DatabaseReference.CompletionListener() {
-            @Override
-            public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-                clearScreen();
-            }
-        });
+        segmentsReference.removeValue((databaseError, databaseReference) -> clearScreen());
     }
 
     private void clearScreen() {
