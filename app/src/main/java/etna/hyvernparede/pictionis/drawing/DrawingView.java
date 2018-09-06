@@ -17,10 +17,11 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import etna.hyvernparede.pictionis.firebase.FirebaseService;
 
 public class DrawingView extends View {
 
@@ -45,6 +46,7 @@ public class DrawingView extends View {
     private Path path;
 
     // Firebase
+    private FirebaseService firebase;
     private DatabaseReference databaseReference;
     private DatabaseReference segmentsReference;
     private ChildEventListener listener;
@@ -59,6 +61,8 @@ public class DrawingView extends View {
     public DrawingView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
+        firebase = FirebaseService.Firebase();
+
         this.setBackgroundColor(Color.WHITE);
 
         path = new Path();
@@ -68,9 +72,8 @@ public class DrawingView extends View {
         paint = makePaint(currentColor, currentSize);
         segmentIds = new ArrayList<>();
         drawnSegments = new ArrayList<>();
-
-        databaseReference = FirebaseDatabase.getInstance().getReference();
-        segmentsReference = databaseReference.child(SEGMENTS_CHILD);
+        databaseReference = firebase.getReference();
+        segmentsReference = firebase.getChildReference(SEGMENTS_CHILD);
         listener = segmentsReference.addChildEventListener(new ChildEventListener() {
 
             @Override

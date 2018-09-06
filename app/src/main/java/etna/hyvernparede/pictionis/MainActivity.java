@@ -32,16 +32,14 @@ import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.firebase.ui.database.SnapshotParser;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import etna.hyvernparede.pictionis.chat.ChatMessage;
 import etna.hyvernparede.pictionis.drawing.DrawingView;
+import etna.hyvernparede.pictionis.firebase.FirebaseService;
 
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
@@ -71,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     private EditText messageEditText;
 
     // Firebase variables
-    private FirebaseAuth firebaseAuth;
+    private FirebaseService firebase;
     private FirebaseUser firebaseUser;
     private DatabaseReference databaseReference;
     private FirebaseRecyclerAdapter<ChatMessage, MessageViewHolder> firebaseAdapter;
@@ -89,9 +87,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         username = ANONYMOUS;
 
+        firebase = FirebaseService.Firebase();
+
         // Signing in
-        firebaseAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseAuth.getCurrentUser();
+        firebaseUser = firebase.getUser();
 
         if (firebaseUser == null) {
             startActivity(new Intent(this, SignInActivity.class));
@@ -121,9 +120,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         drawingView = findViewById(R.id.drawingView);
 
-
         // Retrieving messages from database
-        databaseReference = FirebaseDatabase.getInstance().getReference();
+        databaseReference = firebase.getReference();
+
         SnapshotParser<ChatMessage> parser = snapshot -> {
             ChatMessage message = snapshot.getValue(ChatMessage.class);
             if (message != null) {
@@ -132,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             return message;
         };
 
-        DatabaseReference messagesReference = databaseReference.child(MESSAGES_CHILD);
+        DatabaseReference messagesReference = firebase.getChildReference(MESSAGES_CHILD);
         FirebaseRecyclerOptions<ChatMessage> options = new FirebaseRecyclerOptions.Builder<ChatMessage>()
                 .setQuery(messagesReference, parser)
                 .build();
@@ -209,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             ChatMessage newMessage = new ChatMessage(messageEditText.getText().toString(),
                     username,
                     profilePicUrl);
-            databaseReference.child(MESSAGES_CHILD).push().setValue(newMessage);
+            firebase.push(newMessage, MESSAGES_CHILD);
             messageEditText.setText("");
         });
     }
@@ -228,13 +227,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             case R.id.clear_menu:
                 drawingView.clean();
                 return true;
-            case R.id.color_menu:
-                return true;
+//            case R.id.color_menu:
+//                return true;
             case R.id.size_menu:
                 selectPaintSize();
                 return true;
             case R.id.sign_out_menu:
-                firebaseAuth.signOut();
+                firebase.signOut();
                 Auth.GoogleSignInApi.signOut(googleApiClient);
                 username = ANONYMOUS;
                 startActivity(new Intent(this, SignInActivity.class));

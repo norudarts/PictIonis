@@ -3,9 +3,9 @@
     <item
         android:id="@+id/clear_menu"
         android:title="@string/clear" />
-    <item
-        android:id="@+id/color_menu"
-        android:title="@string/color" />
+    <!--<item-->
+        <!--android:id="@+id/color_menu"-->
+        <!--android:title="@string/color" />-->
     <item
         android:id="@+id/size_menu"
         android:title="@string/size" />
