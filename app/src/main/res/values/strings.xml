@@ -4,4 +4,6 @@
     <string name="send">Envoyer</string>
     <string name="sign_out">Se déconnecter</string>
     <string name="clear">Effacer</string>
+    <string name="color">Couleur</string>
+    <string name="size">Taille</string>
 </resources>

@@ -35,6 +35,7 @@ public class DrawingView extends View {
     private Bitmap bitmap;
     private Paint bitmapPaint;
     private int currentColor;
+    private float currentSize;
     private float scale = 1.0f;
 
     // Segments and Path
@@ -52,6 +53,8 @@ public class DrawingView extends View {
     public static final String TAG = "DrawingView";
     public static final String SEGMENTS_CHILD = "segments";
     public static final int PIXEL_SIZE = 12;
+    public static final float DEFAULT_PAINT_SIZE = 4;
+    public static final Paint.Style DEFAULT_PAINT_STYLE = Paint.Style.STROKE;
 
     public DrawingView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -59,9 +62,10 @@ public class DrawingView extends View {
         this.setBackgroundColor(Color.WHITE);
 
         path = new Path();
-        paint = makePaint();
         bitmapPaint = new Paint(Paint.DITHER_FLAG);
         currentColor = Color.BLACK;
+        currentSize = DEFAULT_PAINT_SIZE;
+        paint = makePaint(currentColor, currentSize);
         segmentIds = new ArrayList<>();
         drawnSegments = new ArrayList<>();
 
@@ -74,7 +78,7 @@ public class DrawingView extends View {
                 String newSegmentId = dataSnapshot.getKey();
                 if (!segmentIds.contains(newSegmentId)) {
                     Segment segment = dataSnapshot.getValue(Segment.class);
-                        drawSegment(segment, makePaint(segment.getColor()));
+                        drawSegment(segment, makePaint(segment.getColor(), segment.getSize()));
 
                         // Draw
                         segment.setId(newSegmentId);
@@ -134,7 +138,7 @@ public class DrawingView extends View {
         path.reset();
 
         path.moveTo(x, y);
-        currentSegment = new Segment(currentColor);
+        currentSegment = new Segment(currentColor, currentSize);
 
         lastX = (int) x / PIXEL_SIZE;
         lastY = (int) y / PIXEL_SIZE;
@@ -171,7 +175,7 @@ public class DrawingView extends View {
         segmentIds.add(segmentId);
 
         // Scaling
-        Segment scaledSegment = new Segment(currentSegment.getColor());
+        Segment scaledSegment = new Segment(currentSegment.getColor(), currentSegment.getSize());
         for (Point point : currentSegment.getPoints()) {
             scaledSegment.addPoint(
                     Math.round(point.getX() / scale), Math.round(point.getY() / scale)
@@ -235,7 +239,7 @@ public class DrawingView extends View {
                 Bitmap.Config.ARGB_8888);
         buffer = new Canvas(bitmap);
         for (Segment segment : drawnSegments)
-            drawSegment(segment, makePaint(segment.getColor()));
+            drawSegment(segment, makePaint(segment.getColor(), segment.getSize()));
     }
 
     @Override
@@ -264,23 +268,50 @@ public class DrawingView extends View {
     }
 
     // Paint methods
-    public Paint makePaint() {
-        return makePaint(Color.BLACK, Paint.Style.STROKE);
-    }
-
-    public Paint makePaint(int color) {
-        return makePaint(color, Paint.Style.STROKE);
-    }
-
-    public Paint makePaint(int color, Paint.Style style) {
+    public Paint makePaint(int color, Paint.Style style, float size) {
         Paint p = new Paint();
 
         p.setColor(color);
         p.setStyle(style);
-
+        if (style == Paint.Style.STROKE)
+            p.setStrokeWidth(size * scale);
         p.setAntiAlias(true);
         p.setDither(true);
 
         return p;
+    }
+
+    public Paint makePaint() {
+        return makePaint(Color.BLACK, DEFAULT_PAINT_STYLE, DEFAULT_PAINT_SIZE);
+    }
+
+    public Paint makePaint(int color) {
+        return makePaint(color, DEFAULT_PAINT_STYLE, DEFAULT_PAINT_SIZE);
+    }
+
+    public Paint makePaint(int color, Paint.Style style) {
+        return makePaint(color, style, DEFAULT_PAINT_SIZE);
+    }
+
+    public Paint makePaint(int color, float size) {
+        return makePaint(color, DEFAULT_PAINT_STYLE, size);
+    }
+
+    public int getCurrentColor() {
+        return currentColor;
+    }
+
+    public void setCurrentColor(int newColor) {
+        currentColor = newColor;
+        paint = makePaint(currentColor, currentSize);
+    }
+
+    public float getCurrentSize() {
+        return currentSize;
+    }
+
+    public void setCurrentSize(float newSize) {
+        currentSize = newSize;
+        paint = makePaint(currentColor, currentSize);
     }
 }

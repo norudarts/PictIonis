@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -11,6 +12,7 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,6 +21,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -120,15 +124,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         // Retrieving messages from database
         databaseReference = FirebaseDatabase.getInstance().getReference();
-        SnapshotParser<ChatMessage> parser = new SnapshotParser<ChatMessage>() {
-            @Override
-            public ChatMessage parseSnapshot(DataSnapshot snapshot) {
-                ChatMessage message = snapshot.getValue(ChatMessage.class);
-                if (message != null) {
-                    message.setId(snapshot.getKey());
-                }
-                return message;
+        SnapshotParser<ChatMessage> parser = snapshot -> {
+            ChatMessage message = snapshot.getValue(ChatMessage.class);
+            if (message != null) {
+                message.setId(snapshot.getKey());
             }
+            return message;
         };
 
         DatabaseReference messagesReference = databaseReference.child(MESSAGES_CHILD);
@@ -203,17 +204,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         // Sending messages
         sendButton = findViewById(R.id.sendButton);
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ChatMessage newMessage = new ChatMessage(messageEditText.getText().toString(),
-                        username,
-                        profilePicUrl);
-                databaseReference.child(MESSAGES_CHILD).push().setValue(newMessage);
-                messageEditText.setText("");
-                messageRecyclerView.smoothScrollToPosition(messageRecyclerView.getAdapter().getItemCount());
-            }
 
+        sendButton.setOnClickListener(view -> {
+            ChatMessage newMessage = new ChatMessage(messageEditText.getText().toString(),
+                    username,
+                    profilePicUrl);
+            databaseReference.child(MESSAGES_CHILD).push().setValue(newMessage);
+            messageEditText.setText("");
         });
     }
 
@@ -228,6 +225,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.clear_menu:
+                drawingView.clean();
+                return true;
+            case R.id.color_menu:
+                return true;
+            case R.id.size_menu:
+                selectPaintSize();
+                return true;
             case R.id.sign_out_menu:
                 firebaseAuth.signOut();
                 Auth.GoogleSignInApi.signOut(googleApiClient);
@@ -235,12 +240,31 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 startActivity(new Intent(this, SignInActivity.class));
                 finish();
                 return true;
-            case R.id.clear_menu:
-                drawingView.clean();
-                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void selectPaintSize() {
+        NumberPicker numberPicker = new NumberPicker(this);
+        numberPicker.setMinValue(1);
+        numberPicker.setMaxValue(80);
+        numberPicker.setValue((int) drawingView.getCurrentSize());
+
+        FrameLayout layout = new FrameLayout(this);
+        layout.addView(numberPicker, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.CENTER));
+
+        new AlertDialog.Builder(this)
+                .setView(layout)
+                .setPositiveButton(android.R.string.ok, (dialogInterface, i) -> {
+                    float newSize = numberPicker.getValue();
+                    drawingView.setCurrentSize(newSize);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     @Override
