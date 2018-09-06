@@ -10,7 +10,12 @@ public class Segment {
     private int color;
 
     public Segment() {
-        this.points = new ArrayList<Point>();
+
+    }
+
+    public Segment(int color) {
+        this.color = color;
+        this.points = new ArrayList<>();
     }
 
     public String getId() {

@@ -37,6 +37,7 @@ import com.firebase.ui.database.SnapshotParser;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import etna.hyvernparede.pictionis.chat.ChatMessage;
+import etna.hyvernparede.pictionis.drawing.DrawingView;
 
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     // Activity Elements
     private Button sendButton;
     private RecyclerView messageRecyclerView;
+    private DrawingView drawingView;
     private LinearLayoutManager linearLayoutManager;
     private EditText messageEditText;
 
@@ -109,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         linearLayoutManager.setStackFromEnd(true);
         messageRecyclerView.setLayoutManager(linearLayoutManager);
 
+
         // Retrieving messages from database
         databaseReference = FirebaseDatabase.getInstance().getReference();
         SnapshotParser<ChatMessage> parser = new SnapshotParser<ChatMessage>() {
@@ -142,7 +145,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                     holder.authorImageView.setImageDrawable(ContextCompat.getDrawable(
                             MainActivity.this, R.drawable.ic_default_profile_pic_36dp));
                 }
-                System.out.println(message.getText());
             }
 
             @NonNull
@@ -207,7 +209,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 messageEditText.setText("");
             }
         });
-
     }
 
     // Menu
