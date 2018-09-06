@@ -60,6 +60,7 @@ public class DrawingView extends View {
         path = new Path();
         paint = makePaint();
         bitmapPaint = new Paint(Paint.DITHER_FLAG);
+        currentColor = Color.BLACK;
         segmentIds = new ArrayList<>();
 
         databaseReference = FirebaseDatabase.getInstance().getReference();
