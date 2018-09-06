@@ -111,6 +111,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         linearLayoutManager.setStackFromEnd(true);
         messageRecyclerView.setLayoutManager(linearLayoutManager);
 
+        messageRecyclerView.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            messageRecyclerView.smoothScrollToPosition(messageRecyclerView.getAdapter().getItemCount());
+        });
+
         drawingView = findViewById(R.id.drawingView);
 
 
@@ -165,8 +169,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 int messageCount = firebaseAdapter.getItemCount();
                 int lastVisiblePosition = linearLayoutManager.findLastCompletelyVisibleItemPosition();
 
-                if (lastVisiblePosition == -1 || (positionStart >= messageCount - 1 && lastVisiblePosition == positionStart - 1))
-                    messageRecyclerView.scrollToPosition(positionStart);
             }
         });
 
@@ -209,7 +211,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                         profilePicUrl);
                 databaseReference.child(MESSAGES_CHILD).push().setValue(newMessage);
                 messageEditText.setText("");
+                messageRecyclerView.smoothScrollToPosition(messageRecyclerView.getAdapter().getItemCount());
             }
+
         });
     }
 

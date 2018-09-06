@@ -6,6 +6,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <etna.hyvernparede.pictionis.drawing.DrawingView
+        android:id="@+id/drawingView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
+
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -14,12 +20,14 @@
         <android.support.v7.widget.RecyclerView
             android:id="@+id/messageRecyclerView"
             android:layout_width="match_parent"
+            android:foregroundGravity="bottom"
             android:layout_height="0dp"
             android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toTopOf="@+id/messageEditText"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+
             />
 
         <EditText
@@ -43,6 +51,8 @@
             android:layout_marginEnd="3dp"
             android:layout_marginRight="3dp"
             android:layout_marginTop="8dp"
+            android:enabled="false"
+
             android:text="Send"
             app:layout_constraintStart_toEndOf="@+id/messageEditText"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -50,10 +60,5 @@
 
     </android.support.constraint.ConstraintLayout>
 
-    <etna.hyvernparede.pictionis.drawing.DrawingView
-        android:id="@+id/drawingView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1" />
 
 </LinearLayout>
