@@ -7,7 +7,7 @@
     android:gravity="center">
 
     <etna.hyvernparede.pictionis.drawing.DrawingView
-        android:id="@+id/dview"
+        android:id="@+id/drawingView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

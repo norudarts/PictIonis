@@ -3,4 +3,5 @@
     <string name="sign_in">Se connecter</string>
     <string name="send">Envoyer</string>
     <string name="sign_out">Se déconnecter</string>
+    <string name="clear">Effacer</string>
 </resources>

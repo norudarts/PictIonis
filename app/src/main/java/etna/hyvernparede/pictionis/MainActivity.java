@@ -111,6 +111,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         linearLayoutManager.setStackFromEnd(true);
         messageRecyclerView.setLayoutManager(linearLayoutManager);
 
+        drawingView = findViewById(R.id.drawingView);
+
 
         // Retrieving messages from database
         databaseReference = FirebaseDatabase.getInstance().getReference();
@@ -228,6 +230,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 username = ANONYMOUS;
                 startActivity(new Intent(this, SignInActivity.class));
                 finish();
+                return true;
+            case R.id.clear_menu:
+                drawingView.clearScreen();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

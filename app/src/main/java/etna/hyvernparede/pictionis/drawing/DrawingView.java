@@ -50,7 +50,7 @@ public class DrawingView extends View {
     // Constants
     public static final String TAG = "DrawingView";
     public static final String SEGMENTS_CHILD = "segments";
-    public static final int PIXEL_SIZE = 8;
+    public static final int PIXEL_SIZE = 12;
 
     public DrawingView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -218,22 +218,39 @@ public class DrawingView extends View {
     }
 
     @Override
-    protected void onSizeChanged(int w, int h, int oldW, int oldH) {
-        super.onSizeChanged(w, h, oldW, oldH);
+    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
+        super.onSizeChanged(width, height, oldWidth, oldHeight);
 
-        scale = Math.min(1.0f * w / width, 1.0f * h / height);
+        scale = Math.min(1.0f * width / this.width, 1.0f * height / this.height);
 
-        bitmap = Bitmap.createBitmap(Math.round(width * scale), Math.round(height * scale), Bitmap.Config.ARGB_8888);
+        bitmap = Bitmap.createBitmap(Math.round(this.width * scale), Math.round(this.height * scale),
+                Bitmap.Config.ARGB_8888);
         buffer = new Canvas(bitmap);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.drawColor(Color.BLACK);
+        canvas.drawColor(Color.DKGRAY);
         canvas.drawRect(0, 0, bitmap.getWidth(), bitmap.getHeight(),
                 makePaint(Color.WHITE, Paint.Style.FILL_AND_STROKE));
         canvas.drawBitmap(bitmap, 0, 0, bitmapPaint);
         canvas.drawPath(path, paint);
+    }
+
+    public void clearScreen() {
+        // Reset Firebase
+        segmentsReference.removeEventListener(listener);
+        segmentsReference.removeValue(new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+                bitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+                buffer = new Canvas(bitmap);
+                currentSegment = null;
+                segmentIds.clear();
+
+                invalidate();
+            }
+        });
     }
 
     // Paint methods
