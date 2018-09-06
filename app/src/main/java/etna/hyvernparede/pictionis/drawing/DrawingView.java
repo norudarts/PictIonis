@@ -40,6 +40,7 @@ public class DrawingView extends View {
     // Segments and Path
     private List<String> segmentIds;
     private Segment currentSegment;
+    private List<Segment> drawnSegments;
     private Path path;
 
     // Firebase
@@ -62,6 +63,7 @@ public class DrawingView extends View {
         bitmapPaint = new Paint(Paint.DITHER_FLAG);
         currentColor = Color.BLACK;
         segmentIds = new ArrayList<>();
+        drawnSegments = new ArrayList<>();
 
         databaseReference = FirebaseDatabase.getInstance().getReference();
         segmentsReference = databaseReference.child(SEGMENTS_CHILD);
@@ -69,10 +71,13 @@ public class DrawingView extends View {
 
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if (!segmentIds.contains(dataSnapshot.getKey())) {
+                String newSegmentId = dataSnapshot.getKey();
+                if (!segmentIds.contains(newSegmentId)) {
                     Segment segment = dataSnapshot.getValue(Segment.class);
                     drawSegment(segment, makePaint(segment.getColor()));
 
+                    drawnSegments.add(segment);
+                    segmentIds.remove(newSegmentId);
                     // Draw
                     invalidate();
                 }
@@ -85,7 +90,7 @@ public class DrawingView extends View {
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
+                clearScreen();
             }
 
             @Override
@@ -160,6 +165,7 @@ public class DrawingView extends View {
         path.lineTo(lastX * PIXEL_SIZE, lastY * PIXEL_SIZE);
         buffer.drawPath(path, paint);
         path.reset();
+        drawnSegments.add(currentSegment);
 
         DatabaseReference newSegmentReference = segmentsReference.push();
         final String segmentId = segmentsReference.getKey();
@@ -169,7 +175,7 @@ public class DrawingView extends View {
         Segment scaledSegment = new Segment(currentSegment.getColor());
         for (Point point: currentSegment.getPoints()) {
             scaledSegment.addPoint(
-                    (int) Math.round(point.getX() / scale), (int) Math.round(point.getY() / scale)
+                    Math.round(point.getX() / scale), Math.round(point.getY() / scale)
             );
         }
 
@@ -180,7 +186,7 @@ public class DrawingView extends View {
                     Log.e(TAG, databaseError.toString());
                 }
 
-                segmentIds.remove(segmentId);
+//                segmentIds.remove(segmentId);
             }
         });
     }
@@ -198,21 +204,22 @@ public class DrawingView extends View {
 
         // Set initial position
         Point currentPoint = points.get(0);
-        path.moveTo(currentPoint.getX() * size, currentPoint.getY() * size);
+        path.moveTo(Math.round(currentPoint.getX() * size), Math.round(currentPoint.getY() * size));
         Point nextPoint = null;
 
         // Move
         for (int i = 1; i < points.size(); i++) {
             nextPoint = points.get(i);
 
-            path.quadTo(currentPoint.getX() * size, currentPoint.getY() * size,
-                    (currentPoint.getX() + nextPoint.getX()) * size,
-                    (currentPoint.getY() + nextPoint.getY()) * size);
+            path.quadTo(Math.round(currentPoint.getX() * size),
+                    Math.round(currentPoint.getY() * size),
+                    Math.round((currentPoint.getX() + nextPoint.getX()) * size / 2),
+                    Math.round((currentPoint.getY() + nextPoint.getY()) * size / 2));
 
             currentPoint = nextPoint;
         }
         if (nextPoint != null) {
-            path.lineTo(nextPoint.getX() * size, nextPoint.getY() * size);
+            path.lineTo(Math.round(nextPoint.getX() * size), Math.round(nextPoint.getY() * size));
         }
 
         return path;
@@ -227,6 +234,7 @@ public class DrawingView extends View {
         bitmap = Bitmap.createBitmap(Math.round(this.width * scale), Math.round(this.height * scale),
                 Bitmap.Config.ARGB_8888);
         buffer = new Canvas(bitmap);
+        for (Segment segment : drawnSegments) drawSegment(segment, makePaint(segment.getColor()));
     }
 
     @Override
@@ -238,20 +246,25 @@ public class DrawingView extends View {
         canvas.drawPath(path, paint);
     }
 
-    public void clearScreen() {
-        // Reset Firebase
+    public void clean() {
+        // Reset Firebase and clear screen
         segmentsReference.removeEventListener(listener);
         segmentsReference.removeValue(new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-                bitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-                buffer = new Canvas(bitmap);
-                currentSegment = null;
-                segmentIds.clear();
-
-                invalidate();
+                clearScreen();
             }
         });
+    }
+
+    private void clearScreen() {
+        bitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        buffer = new Canvas(bitmap);
+        currentSegment = null;
+        segmentIds.clear();
+        drawnSegments.clear();
+
+        invalidate();
     }
 
     // Paint methods

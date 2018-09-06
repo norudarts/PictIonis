@@ -232,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 finish();
                 return true;
             case R.id.clear_menu:
-                drawingView.clearScreen();
+                drawingView.clean();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
