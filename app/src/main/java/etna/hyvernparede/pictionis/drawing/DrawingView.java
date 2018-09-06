@@ -74,14 +74,12 @@ public class DrawingView extends View {
                 String newSegmentId = dataSnapshot.getKey();
                 if (!segmentIds.contains(newSegmentId)) {
                     Segment segment = dataSnapshot.getValue(Segment.class);
-                    if (!alreadyOnScreen(newSegmentId)) {
                         drawSegment(segment, makePaint(segment.getColor()));
 
                         // Draw
                         segment.setId(newSegmentId);
                         drawnSegments.add(segment);
                         invalidate();
-                    }
                 }
             }
 
@@ -171,8 +169,6 @@ public class DrawingView extends View {
         DatabaseReference newSegmentReference = segmentsReference.push();
         final String segmentId = newSegmentReference.getKey();
         segmentIds.add(segmentId);
-        currentSegment.setId(segmentId);
-        drawnSegments.add(currentSegment);
 
         // Scaling
         Segment scaledSegment = new Segment(currentSegment.getColor());
@@ -182,25 +178,20 @@ public class DrawingView extends View {
             );
         }
 
-        newSegmentReference.setValue(scaledSegment, new DatabaseReference.CompletionListener() {
-            @Override
-            public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
-                if (databaseError != null) {
-                    Log.e(TAG, databaseError.toString());
-                }
-
-                segmentIds.remove(segmentId);
+        newSegmentReference.setValue(scaledSegment, (databaseError, databaseReference) -> {
+            if (databaseError != null) {
+                Log.e(TAG, databaseError.toString());
             }
+
+            segmentIds.remove(segmentId);
         });
+
+        // Adding to list of drawn segments
+        scaledSegment.setId(segmentId);
+        drawnSegments.add(scaledSegment);
     }
 
     // Drawing methods
-    private boolean alreadyOnScreen(String segmentId) {
-        return drawnSegments.stream()
-                .map(Segment::getId)
-                .anyMatch(id -> id.equals(segmentId));
-    }
-
     public void drawSegment(Segment segment, Paint paint) {
         if (buffer != null) {
             buffer.drawPath(getPath(segment.getPoints()), paint);
