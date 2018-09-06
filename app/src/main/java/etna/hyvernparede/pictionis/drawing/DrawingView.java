@@ -68,7 +68,7 @@ public class DrawingView extends View {
 
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if (segmentIds.contains(dataSnapshot.getKey())) {
+                if (!segmentIds.contains(dataSnapshot.getKey())) {
                     Segment segment = dataSnapshot.getValue(Segment.class);
                     drawSegment(segment, makePaint(segment.getColor()));
 
@@ -160,16 +160,25 @@ public class DrawingView extends View {
         buffer.drawPath(path, paint);
         path.reset();
 
-        segmentsReference.push();
+        DatabaseReference newSegmentReference = segmentsReference.push();
         final String segmentId = segmentsReference.getKey();
         segmentIds.add(segmentId);
 
-        segmentsReference.setValue(currentSegment, new DatabaseReference.CompletionListener() {
+        // Scaling
+        Segment scaledSegment = new Segment(currentSegment.getColor());
+        for (Point point: currentSegment.getPoints()) {
+            scaledSegment.addPoint(
+                    (int) Math.round(point.getX() / scale), (int) Math.round(point.getY() / scale)
+            );
+        }
+
+        newSegmentReference.setValue(scaledSegment, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
                 if (databaseError != null) {
                     Log.e(TAG, databaseError.toString());
                 }
+
                 segmentIds.remove(segmentId);
             }
         });
@@ -177,7 +186,7 @@ public class DrawingView extends View {
 
     // Drawing methods
     public void drawSegment(Segment segment, Paint paint) {
-        if (buffer == null) {
+        if (buffer != null) {
             buffer.drawPath(getPath(segment.getPoints()), paint);
         }
     }
