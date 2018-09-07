@@ -68,6 +68,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     private LinearLayoutManager linearLayoutManager;
     private EditText messageEditText;
 
+    // Dictionary for drawing ideas
+    private Dictionary dictionary;
+
     // Firebase variables
     private FirebaseService firebase;
     private FirebaseUser firebaseUser;
@@ -211,6 +214,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             firebase.push(newMessage, MESSAGES_CHILD);
             messageEditText.setText("");
         });
+
+        // Initialise Dictionary
+        dictionary = new Dictionary(this);
+        dictionary.loadDictionary();
     }
 
     // Menu
@@ -232,6 +239,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             case R.id.size_menu:
                 selectPaintSize();
                 return true;
+            case R.id.idea_menu:
+                giveWordIdea();
+                return true;
             case R.id.sign_out_menu:
                 firebase.signOut();
                 Auth.GoogleSignInApi.signOut(googleApiClient);
@@ -244,6 +254,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         }
     }
 
+    // Size Menu
     private void selectPaintSize() {
         NumberPicker numberPicker = new NumberPicker(this);
         numberPicker.setMinValue(1);
@@ -264,6 +275,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 })
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
+    }
+
+    // Dictionary
+    public void giveWordIdea() {
+        String idea = dictionary.getRandomWord();
+
+        Toast.makeText(this, idea, Toast.LENGTH_SHORT).show();
     }
 
     @Override

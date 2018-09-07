@@ -10,6 +10,9 @@
         android:id="@+id/size_menu"
         android:title="@string/size" />
     <item
+        android:id="@+id/idea_menu"
+        android:title="@string/idea" />
+    <item
         android:id="@+id/sign_out_menu"
         android:title="@string/sign_out" />
 </menu>
